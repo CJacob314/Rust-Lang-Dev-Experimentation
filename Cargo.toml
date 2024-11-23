@@ -1,0 +1,10 @@
+[package]
+name = "learning-chumsky"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chumsky = "0.9.3"
+color-eyre = "0.6.3"
+structopt = "0.3.26"
+thiserror = "2.0.3"
