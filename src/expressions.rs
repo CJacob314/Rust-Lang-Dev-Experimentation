@@ -1,5 +1,5 @@
-use std::ops;
 use std::fmt::Display;
+use std::ops;
 
 #[derive(Debug, Clone)]
 // The AST for my language
@@ -14,24 +14,28 @@ pub(crate) enum Expr {
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
-    
+
     // Function call
     Call(String, Vec<Expr>),
-    
+
     // "let" statement
     Let {
         name: String,
         rhs: Box<Expr>,
-        then: Box<Expr> // What comes after the `let`
+        then: Option<Box<Expr>>, // What comes after the `let`
     },
+    LetIdent(String),
 
     // Function definition
     Fn {
         name: String,
         args: Vec<String>,
         body: Box<Expr>,
-        then: Box<Expr> // What comes after the function definition
+        then: Box<Expr>, // What comes after the function definition
     },
+
+    // ε
+    Empty,
 }
 
 // Represents numerical types
@@ -49,7 +53,7 @@ impl ops::Neg for Num {
 
         match self {
             Int(i) => Int(-i),
-            Float(f) => Float(-f)
+            Float(f) => Float(-f),
         }
     }
 }
