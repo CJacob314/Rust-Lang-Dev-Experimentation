@@ -3,13 +3,23 @@ use chumsky::prelude::*;
 
 pub(crate) fn parser() -> impl Parser<char, Expr, Error = Simple<char>> + Clone {
     let ident = text::ident().padded();
+    //let whitespace = text::whitespace().repeated();
 
     let expr = recursive(|expr| {
         let num = num_parser().padded();
 
-        // Atom is either a number, parenthesis statement, or variable/"let" identifier
+        let function_call = ident
+            .then(
+                expr.clone()
+                    .separated_by(just(','))
+                    .delimited_by(just('('), just(')')),
+            )
+            .map(|(f, args)| Expr::Call(f, args));
+
+        // Atom is either a number, parenthesis statement, variable/"let" identifier, or function call (defined above)
         let atom = num
             .or(expr.delimited_by(just('('), just(')')))
+            .or(function_call)
             .or(ident.map(Expr::LetIdent))
             //.or_not()
             //.map(|opt| opt.unwrap_or(Expr::Empty))
@@ -54,14 +64,30 @@ pub(crate) fn parser() -> impl Parser<char, Expr, Error = Simple<char>> + Clone 
             .then_ignore(just('='))
             .then(expr.clone())
             .then_ignore(just(';'))
-            .then(decl.or_not())
+            .then(decl.clone().or_not())
             .map(|((name, rhs_expr), then)| Expr::Let {
                 name,
                 rhs: Box::new(rhs_expr),
-                then: then.map(|expr| Box::new(expr)),
+                then: then.map(Box::new),
             });
 
-        let_decl.or(expr).padded()
+        let fn_decl = text::keyword("func")
+            .ignore_then(ident) // The function name
+            .then_ignore(just('(').padded()) // Opening parenthesis
+            .then(ident.separated_by(just(','))) // Function argument names
+            .then_ignore(just(')').padded()) // Closing parenthesis
+            .then_ignore(just('{').padded()) // Open body brace
+            .then(expr.clone()) // Body
+            .then_ignore(just('}').padded()) // Closing body brace
+            .then(decl)
+            .map(|(((name, args), body), then)| Expr::Fn {
+                name,
+                args,
+                body: Box::new(body),
+                then: Box::new(then),
+            });
+
+        let_decl.or(fn_decl).or(expr).padded()
     });
 
     decl.then_ignore(end())

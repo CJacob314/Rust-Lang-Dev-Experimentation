@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::ops;
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 // The AST for my language
 pub(crate) enum Expr {

@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     match parser().parse(src) {
         Ok(ast) => {
             dbg!(&ast);
-            println!("{}", eval(&ast, &mut Vec::new())?)
+            println!("{}", eval(&ast, &mut Vec::new(), &mut Vec::new())?)
         }
         Err(parse_errs) => parse_errs
             .into_iter()
